@@ -19,8 +19,12 @@ async def init_election(ctx, *args):
     Args: User mentions, separated by a space
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
-    voters_base_name = internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
+    voters_base_name = (
+        internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
+    )  # explicit cast required
     timestamp = datetime.datetime.now()
     if os.path.isfile(election_name) or os.path.isfile(voters_base_name):
         raise commands.errors.UserInputError("An election is already in progress on this server!")
@@ -57,7 +61,9 @@ async def add_candidates(ctx, *args):
     Args: User mentions, separated by a space
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
     timestamp = datetime.datetime.now()
     if not os.path.isfile(election_name):
         raise commands.errors.UserInputError("No election is in progress in current server!")
@@ -93,7 +99,9 @@ async def remove_candidates(ctx, *args):
     Args: user mentions, separated by a space
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
     timestamp = datetime.datetime.now()
     if not os.path.isfile(election_name):
         raise commands.errors.UserInputError("No election is in progress in current server!")
@@ -124,8 +132,12 @@ async def show_election_progress(ctx):
     Args: None except context
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
-    voters_base_name = internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
+    voters_base_name = (
+        internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
+    )  # explicit cast required
     if not os.path.isfile(election_name):
         raise commands.errors.UserInputError("No election is in progress in current server!")
     timestamp = datetime.datetime.now()
@@ -184,8 +196,12 @@ async def vote(ctx, *args):
     Args: User mentions, separated by a space
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
-    voters_base_name = internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
+    voters_base_name = (
+        internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
+    )  # explicit cast required
     if not os.path.isfile(voters_base_name) or not os.path.isfile(election_name):
         raise commands.errors.UserInputError("No election is in progress in current server!")
     if len(args) == 0:
@@ -224,8 +240,12 @@ async def finish_election(ctx):
     Args: None except context
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
-    voters_base_name = internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
+    voters_base_name = (
+        internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
+    )  # explicit cast required
     if not os.path.isfile(election_name):
         raise commands.errors.UserInputError("No election is in progress in current server!")
     timestamp = datetime.datetime.now()
@@ -303,7 +323,9 @@ async def set_election_reward_roles(ctx, *args):
     Args: Role mentions, separated by a space
     Return value: None
     """
-    election_name = internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)  # explicit cast required
+    election_name = (
+        internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
+    )  # explicit cast required
     if not os.path.isfile(election_name):
         raise commands.errors.UserInputError("No election is in progress in current server!")
     if len(args) == 0:

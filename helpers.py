@@ -16,21 +16,18 @@ def set_dir_structure():
     Args: none
     Return value: None
     """
-    # create logs dir if none exists. See TODO #2
     if not os.path.isdir("./logs"):
         os.mkdir("./logs")
         timestamp = datetime.datetime.now()
         with open(internals.LOGFILE, "a", encoding="utf-8") as logfile:
             logfile.write(f"Created logfile and logs dir at {timestamp}\n")
             print(f"Created logfile and logs dir at {timestamp}")
-    # create elections dir if none exists. See TODO #2
     if not os.path.isdir(internals.ELECTIONS_DIR):
         os.mkdir(internals.ELECTIONS_DIR)
         timestamp = datetime.datetime.now()
         with open(internals.LOGFILE, "a", encoding="utf-8") as logfile:
             logfile.write(f"Created elections dir at {timestamp}\n")
             print(f"Created elections dir at {timestamp}")
-    # create voters dir if none exists. See TODO #2
     if not os.path.isdir(internals.VOTERS_DIR):
         os.mkdir(internals.VOTERS_DIR)
         timestamp = datetime.datetime.now()
@@ -93,7 +90,7 @@ async def get_user_mention_by_id(identifier: str) -> str:
     )  # explicit cast required to avoid illegal argument exceptions
     if not await get_mention_type(user.mention) == "user":
         raise commands.errors.BadArgument(
-            "Please check if you are mentioning a role/channel, only users are supported! in get user mention by id"
+            "Please check if you are mentioning a role/channel, only users are supported!"
         )
     return user.mention  # automatically constructs a mention
 
