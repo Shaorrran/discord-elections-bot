@@ -9,8 +9,10 @@ from dotenv import load_dotenv
 
 load_dotenv()  # export the vars from .env as environ vars
 TOKEN = os.getenv("BOT_TOKEN")  # because, you know, it's supposed to be *secret*
-
-LOGFILE = "logs/bot.log"  # ugly, see TODO
+LOGFILE = os.getenv("LOGFILE")
+ELECTIONS_DIR = os.getenv("ELECTIONS_DIR")
+VOTERS_DIR = os.getenv("VOTERS_DIR")
+#CONFIGS_DIR = os.getenv("CONFIGS_DIR")
 
 bot_intents = discord.Intents.default()
 bot_intents.members = True
