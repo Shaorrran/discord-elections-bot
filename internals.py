@@ -12,7 +12,7 @@ TOKEN = os.getenv("BOT_TOKEN")  # because, you know, it's supposed to be *secret
 LOGFILE = os.getenv("LOGFILE")
 ELECTIONS_DIR = os.getenv("ELECTIONS_DIR")
 VOTERS_DIR = os.getenv("VOTERS_DIR")
-#CONFIGS_DIR = os.getenv("CONFIGS_DIR")
+# CONFIGS_DIR = os.getenv("CONFIGS_DIR")
 
 bot_intents = discord.Intents.default()
 bot_intents.members = True
