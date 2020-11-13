@@ -49,7 +49,9 @@ async def get_mention_type(mention: str) -> str:
     mention = str(mention)
     if mention.startswith("<@") and mention.endswith(">"):  # user mention
         return "user"
-    if mention.startswith("<@!") and mention.endswith(">"):  # user mention by guild-specific name
+    if mention.startswith("<@!") and mention.endswith(
+        ">"
+    ):  # user mention by guild-specific name
         return "user"
     if mention.startswith("<#") and mention.endswith(">"):  # channel mention
         return "channel"
@@ -123,7 +125,7 @@ async def remove_line_from_file(filename: str, content: str):
             await write_to_file(filename, line + "\n")
 
 
-async def get_mention_ids(mentions: typing.List[str]) -> typing.List[str]:
+async def get_mention_ids(mentions: typing.List[str]) -> typing.List[int]:
     """
     Get a list of ids from a list of mentions
     Args: mentions of type List[str]
@@ -169,7 +171,12 @@ async def get_file_info(filename: str) -> typing.Dict[int, int]:
                 continue
             if line.startswith("\n"):
                 continue
-            user, value = line.split()  # default split uses whitespace as separator, which suits us
+            (
+                user,
+                value,
+            ) = (
+                line.split()
+            )  # default split uses whitespace as separator, which suits us
             file_info[int(user)] = int(value)  # explicit casts to int
 
     return file_info
@@ -224,6 +231,6 @@ async def get_reward_roles(filename: str) -> typing.List[int]:
                 line_content = line_content[2:]  # delete "Rewarded roles"
                 roles.append(line_content)
 
-    roles = [int(j) for i in roles for j in i]  # flatten the list and cast to int
+    roles_flat = [int(j) for i in roles for j in i]  # flatten the list and cast to int
 
-    return roles
+    return roles_flat

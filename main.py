@@ -1,6 +1,7 @@
 """
 Main runner for Discord bot
 """
+import commands
 import helpers
 import internals
 
