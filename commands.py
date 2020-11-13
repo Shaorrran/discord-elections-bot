@@ -27,7 +27,9 @@ async def init_election(ctx, *args):
     )  # explicit cast required
     timestamp = datetime.datetime.now()
     if os.path.isfile(election_name) or os.path.isfile(voters_base_name):
-        raise commands.errors.UserInputError("An election is already in progress on this server!")
+        raise commands.errors.UserInputError(
+            "An election is already in progress on this server!"
+        )
     if len(args) == 0:
         raise commands.errors.UserInputError("At least one candidate required!")
     # Checking for existing candidates is not required as the file is guaranteed to be empty
@@ -53,7 +55,9 @@ async def init_election(ctx, *args):
     )
 
 
-@internals.bot.command(name="add-candidates", help="Adds candidates to the current election")
+@internals.bot.command(
+    name="add-candidates", help="Adds candidates to the current election"
+)
 @commands.has_guild_permissions(manage_guild=True)
 async def add_candidates(ctx, *args):
     """
@@ -66,7 +70,9 @@ async def add_candidates(ctx, *args):
     )  # explicit cast required
     timestamp = datetime.datetime.now()
     if not os.path.isfile(election_name):
-        raise commands.errors.UserInputError("No election is in progress in current server!")
+        raise commands.errors.UserInputError(
+            "No election is in progress in current server!"
+        )
     if len(args) == 0:
         raise commands.errors.UserInputError("No candidates supplied!")
     mentions = await helpers.get_mention_ids(args)
@@ -84,14 +90,18 @@ async def add_candidates(ctx, *args):
         )  # initialize candidate and set votes count to 0
 
     await ctx.send("Added new candidates to current election!")
-    print(f"Added candidates to election in {ctx.guild.name} (id: {ctx.guild.id}) at {timestamp}")
+    print(
+        f"Added candidates to election in {ctx.guild.name} (id: {ctx.guild.id}) at {timestamp}"
+    )
     await helpers.write_to_file(
         internals.LOGFILE,
         f"Added new candidates to election in {ctx.guild.name} (id: {ctx.guild.id}) at {timestamp}\n",
     )
 
 
-@internals.bot.command(name="remove-candidates", help="Remove candidates from the election")
+@internals.bot.command(
+    name="remove-candidates", help="Remove candidates from the election"
+)
 @commands.has_guild_permissions(manage_guild=True)
 async def remove_candidates(ctx, *args):
     """
@@ -104,7 +114,9 @@ async def remove_candidates(ctx, *args):
     )  # explicit cast required
     timestamp = datetime.datetime.now()
     if not os.path.isfile(election_name):
-        raise commands.errors.UserInputError("No election is in progress in current server!")
+        raise commands.errors.UserInputError(
+            "No election is in progress in current server!"
+        )
     if len(args) == 0:
         raise commands.errors.UserInputError("No candidates supplied!")
     mentions = await helpers.get_mention_ids(args)
@@ -123,7 +135,8 @@ async def remove_candidates(ctx, *args):
 
 
 @internals.bot.command(
-    name="show-election-progress", help="Show a table of candidates and their current polls"
+    name="show-election-progress",
+    help="Show a table of candidates and their current polls",
 )
 @commands.has_guild_permissions(manage_guild=True)
 async def show_election_progress(ctx):
@@ -139,7 +152,9 @@ async def show_election_progress(ctx):
         internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
     )  # explicit cast required
     if not os.path.isfile(election_name):
-        raise commands.errors.UserInputError("No election is in progress in current server!")
+        raise commands.errors.UserInputError(
+            "No election is in progress in current server!"
+        )
     timestamp = datetime.datetime.now()
     time_s = (
         str(timestamp.year)
@@ -172,7 +187,9 @@ async def show_election_progress(ctx):
         # we respect election secrecy and do not directly link voters to candidates
         # we just record the fact someone voted
         # (nevermind that we don't use encryption yet...)
-    current_leader = max(election_info, key=lambda key: election_info[key])  # yay, lambdas
+    current_leader = max(
+        election_info, key=lambda key: election_info[key]
+    )  # yay, lambdas
     if not len(election_info.values()) == len(set(election_info.values())):
         output += "No current leader detected!\n"
         await ctx.send(output)
@@ -203,12 +220,20 @@ async def vote(ctx, *args):
         internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
     )  # explicit cast required
     if not os.path.isfile(voters_base_name) or not os.path.isfile(election_name):
-        raise commands.errors.UserInputError("No election is in progress in current server!")
+        raise commands.errors.UserInputError(
+            "No election is in progress in current server!"
+        )
     if len(args) == 0:
-        raise commands.errors.UserInputError("Please select a candidate to vote for first!")
+        raise commands.errors.UserInputError(
+            "Please select a candidate to vote for first!"
+        )
     if await helpers.is_string_in_file(
         voters_base_name,
-        str(internals.bot.get_user(await helpers.get_id_by_mention(ctx.author.mention)).id),
+        str(
+            internals.bot.get_user(
+                await helpers.get_id_by_mention(ctx.author.mention)
+            ).id
+        ),
     ):  # god fucking dammit that's a pile a shit
         raise commands.errors.UserInputError(
             "You have voted already, and you can't change your choice now!"
@@ -232,7 +257,9 @@ async def vote(ctx, *args):
     )  # god fucking dammit that's a pile of shit
 
 
-@internals.bot.command(name="finish-election", help="Finish the election and show the winner")
+@internals.bot.command(
+    name="finish-election", help="Finish the election and show the winner"
+)
 @commands.has_guild_permissions(manage_guild=True)
 async def finish_election(ctx):
     """
@@ -247,7 +274,9 @@ async def finish_election(ctx):
         internals.VOTERS_DIR + "/voters_" + str(ctx.guild.id)
     )  # explicit cast required
     if not os.path.isfile(election_name):
-        raise commands.errors.UserInputError("No election is in progress in current server!")
+        raise commands.errors.UserInputError(
+            "No election is in progress in current server!"
+        )
     timestamp = datetime.datetime.now()
     time_s = (
         str(timestamp.year)
@@ -287,7 +316,6 @@ async def finish_election(ctx):
         return
     output += f"Winner is: {await helpers.get_user_mention_by_id(winner_id)} at {election_info[winner_id]} votes ({round((election_info[winner_id] / votes_sum) * 100, 2)}%)\n"
     voters_info = await helpers.get_file_info(voters_base_name)
-    print(f"voters_info: {voters_info}")
     if len(voters_info) == 0:
         raise commands.errors.UserInputError("No votes registered yet!")
     turnout = round(
@@ -295,26 +323,25 @@ async def finish_election(ctx):
     )  # machines don't vote. Yet.
     output += f"Voter turnout: {turnout}%"
     winner = ctx.guild.get_member(winner_id)
-    print(f"winner is {winner}")
-    print(f"reward roles: {reward_roles}")
     for role_id in reward_roles:  # add reward roles
-        print(f"in for at {role}")
         role = discord.utils.get(ctx.guild.roles, id=role_id)
         await winner.add_roles(role, reason="Won the election")
-        print("added role")
     os.remove(election_name)
     os.remove(voters_base_name)
     await helpers.write_to_file(
         internals.LOGFILE,
         f"Election finished in {ctx.guild.name} (id: {ctx.guild.id}) at {timestamp} UTC",
     )
-    print(f"Election finished in {ctx.guild.name} (id: {ctx.guild.id}) at {timestamp} UTC")
+    print(
+        f"Election finished in {ctx.guild.name} (id: {ctx.guild.id}) at {timestamp} UTC"
+    )
 
     await ctx.send(output)
 
 
 @internals.bot.command(
-    name="set-election-reward-roles", help="Set roles that the winner will be rewarded with"
+    name="set-election-reward-roles",
+    help="Set roles that the winner will be rewarded with",
 )
 @commands.has_guild_permissions(manage_guild=True)
 async def set_election_reward_roles(ctx, *args):
@@ -327,7 +354,9 @@ async def set_election_reward_roles(ctx, *args):
         internals.ELECTIONS_DIR + "/election_" + str(ctx.guild.id)
     )  # explicit cast required
     if not os.path.isfile(election_name):
-        raise commands.errors.UserInputError("No election is in progress in current server!")
+        raise commands.errors.UserInputError(
+            "No election is in progress in current server!"
+        )
     if len(args) == 0:
         raise commands.errors.UserInputError("At least one role required as reward!")
     roles_str = "Rewarded roles: "

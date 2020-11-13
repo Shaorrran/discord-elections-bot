@@ -17,7 +17,9 @@ async def on_ready():  # gets called when the bot is finished connecting to guil
     Return value: None
     """
     await internals.bot.change_presence(
-        activity=discord.Activity(type=discord.ActivityType.playing, name="election fraud")  # ha!
+        activity=discord.Activity(
+            type=discord.ActivityType.playing, name="election fraud"
+        )  # ha!
     )
     with open(internals.LOGFILE, "a", encoding="utf-8") as logfile:
         start_timestamp = datetime.datetime.now()
