@@ -1,0 +1,5 @@
+aiosqlite>=0.16.1
+discord.py>=1.7.3
+python-dotenv>=0.18.0
+tortoise-orm>=0.17.4
+asyncio>=3.4.3
