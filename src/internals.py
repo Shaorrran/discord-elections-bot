@@ -16,8 +16,6 @@ import src.cogs.god as god
 load_dotenv()  # export the vars from .env as environ vars
 TOKEN = os.getenv("BOT_TOKEN")  # because, you know, it's supposed to be *secret*
 IN_MEMORY_DB = os.getenv("IN_MEMORY_DB")  # whether we store the database in memory or in a file
-GOD_ID = os.getenv("GOD_ID")
-
 
 def get_prefix(bot: commands.bot, message: str) -> tp.Any:
     """

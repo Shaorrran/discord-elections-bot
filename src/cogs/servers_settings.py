@@ -161,6 +161,8 @@ class Settings(commands.Cog):
         Reply with an embed storing server-wide settings.
         """
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise commands.errors.CommandError("Server configuration is not set yet. Please run `set-reward-roles`.")
         embed = discord.Embed(
             title="Server settings",
             desc=f"Elections settings for {ctx.guild.name}",
