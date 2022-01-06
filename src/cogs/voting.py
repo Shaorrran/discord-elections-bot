@@ -21,7 +21,6 @@ class Voting(commands.Cog):
         self.bot = bot
 
     @commands.command(name="start-election", help="Start an election in current server.")
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def start_election(self, ctx, *, candidates):
         """
@@ -29,6 +28,9 @@ class Voting(commands.Cog):
         Args: list of mentions separated by a space.
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
         if not server:
             raise commands.errors.CommandError("Set reward roles first.")
@@ -89,7 +91,6 @@ class Voting(commands.Cog):
     @commands.command(
         name="view-current-elections", help="View which elections are ongoing in this server."
     )
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def view_current_elections(self, ctx):
         """
@@ -97,6 +98,9 @@ class Voting(commands.Cog):
         Args: none except context
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         elections = list(await Elections.filter(server_id=ctx.guild.id).all())
         embed = discord.Embed(
             title="Ongoing elections",
@@ -117,7 +121,6 @@ class Voting(commands.Cog):
         await ctx.reply(f"{error}")
 
     @commands.command(name="view-election-poll", help="View the current polls for an election.")
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def view_election_poll(self, ctx, *, election_id):
         """
@@ -125,6 +128,9 @@ class Voting(commands.Cog):
         Args: election_id as type integer
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         try:
             election = await Elections.filter(id=election_id).first()
         except Exception:
@@ -163,7 +169,6 @@ class Voting(commands.Cog):
     @commands.command(
         name="finish-election", help="Finish an election and give out the roles to the winners."
     )
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def finish_election(self, ctx, *, election_id):
         """
@@ -171,6 +176,9 @@ class Voting(commands.Cog):
         Args: election ID as type int.
         Return value: None.
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         server = await ServersSettings.filter(
             server_id=ctx.guild.id
         ).first()  # assuming it exists, one can't start an election without that
