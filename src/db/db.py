@@ -11,6 +11,7 @@ from tortoise.models import Model
 
 load_dotenv()
 DEPRECATED = True # CHANGE THIS
+DATABASE_URL = os.getenv("DATABASE_URL") if os.getenv("DATABASE_URL") else None
 LOCAL_DB = bool(os.getenv("LOCAL_DB")) if os.getenv("LOCAL_DB") else True
 DRIVER = "sqlite" if deprecated else "postgres"
 POSTGRES_USERNAME = os.getenv("POSTGRES_USERNAME") if not LOCAL_DB else "postgres"
@@ -94,7 +95,10 @@ async def init(in_memory=False):
                 )
             await Tortoise.generate_schemas(safe=True)
         else:
-            database_path = f"{DRIVER}://{POSTGRES_USERNAME}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DBNAME}"
+            if DATABASE_URL:
+                database_path = DATABASE_URL
+            else:
+                database_path = f"{DRIVER}://{POSTGRES_USERNAME}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DBNAME}"
             await Tortoise.init(
                 db_url=database_path,
                 modules={"models": [f"{__name__}"]},
