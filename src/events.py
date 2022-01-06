@@ -70,7 +70,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.errors.MissingRequiredArgument):
         # dealt with in per-command error handlers
         return
-    elif isinstance((error, commands.errors.CommandError):
+    elif isinstance(error, commands.errors.CommandError):
         # dealt with in per-command error handlers
         return
     else:
