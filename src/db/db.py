@@ -13,9 +13,10 @@ class ServersSettings(Model):
     """
 
     server_id = fields.IntField(pk=True, unique=True)
-    reward_roles = fields.TextField()  # ids separated by a comma
-    role_weights = fields.JSONField(null=True)
+    reward_roles = fields.TextField(default="")  # ids separated by a comma
+    role_weights = fields.JSONField(null=True) # dict: {role_id: integer_weight}
     winners_pool = fields.IntField(default=1)
+    prefixes = fields.TextField(default="!")
 
     def __str__(self):
         """
@@ -39,6 +40,12 @@ class Elections(Model):
     candidates_votes = fields.JSONField()  # dict: {"name": [emoji_id, number_of_votes]}
     progress_message = fields.IntField(default=-1)
 
+    def __str__(self):
+        """
+        Magic.
+        """
+        return str(self.id)
+
     class Meta:
         table = "elections"
         table_description = "Stores individual election instances"
@@ -51,7 +58,7 @@ async def init(in_memory=False):
     if in_memory:
         database_path = "sqlite://:memory:"
     else:
-        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../..test.sqlite3"
+        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../../db.sqlite3"
     await Tortoise.init(
         db_url=database_path,
         modules={"models": [f"{__name__}"]},
