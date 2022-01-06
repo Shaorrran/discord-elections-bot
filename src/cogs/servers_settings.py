@@ -15,7 +15,40 @@ class Settings(commands.Cog):
     """
 
     def __init__(self, bot):
+        """
+        Initialize the cog.
+        Args: bot object
+        Return value: None
+        """
         self.bot = bot
+
+    @commands.command(name="set-prefixes", help="Set bot prefixes for this server")
+    @commands.has_guild_permissions(manage_guild=True)
+    async def set_prefixes(self, ctx, *, prefixes):
+        """
+        Set bot prefixes.
+        Args: prefixes (strings separated by spaces)
+        Return value: None
+        """
+        server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        prefix_string = ",".join(prefixes)
+        server.prefixes = prefix_string
+        await server.save()
+        ctx.guild.me.edit(username=f"[{prefix_string}]{self.bot.user.name}")
+        await ctx.reply("New prefixes set!")
+
+    @set_prefixes.error
+    async def set_prefixes_error(self, ctx, error):
+        """
+        set-prefixes error handling.
+        Args: context, error
+        Return value: None
+        """
+        if isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.reply("At least one prefix required.\n\
+                Command syntax: `set-prefixes prefix prefix prefix ...`")
+        else:
+            await ctx.reply(f"{error}")
 
     @commands.command(
         name="set-reward-roles", help="Set the roles that will be given out as rewards to winners."
@@ -25,6 +58,7 @@ class Settings(commands.Cog):
         """
         Set roles to be given as rewards for winning elections.
         Args: list of role mentions of type str
+        Return value: None
         """
         roles = roles.split()
         types = [await helpers.get_mention_type(i) for i in roles]
@@ -34,10 +68,6 @@ class Settings(commands.Cog):
             )
         ids = [str(i) for i in await helpers.get_mention_ids(roles)]
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
-        if not server:
-            await ServersSettings.create(server_id=ctx.guild.id, reward_roles=",".join(ids))
-            await ctx.reply("Reward roles set.")
-            return
         server.reward_roles = ",".join(ids)
         await server.save()
         await ctx.reply("Reward roles set.")
@@ -45,14 +75,14 @@ class Settings(commands.Cog):
     @set_reward_roles.error
     async def set_reward_roles_error(self, ctx, error):
         """
-        set-reward-roles error handling
+        set-reward-roles error handling.
+        Args: context, error
+        Return value: None
         """
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply("Please specify at least one role to set as a reward.")
-            return
         else:
             await ctx.reply(error)
-            return
 
     @commands.command(
         name="set-winners-count", help="Set the number of winner that are possible in an election."
@@ -62,6 +92,7 @@ class Settings(commands.Cog):
         """
         Set the number of users that will be able to win the election.
         Args: count of type int
+        Return value: None
         """
         count = count.split()
         if len(count) > 1:
@@ -69,10 +100,8 @@ class Settings(commands.Cog):
         try:
             winners_pool = int(count[0])
         except ValueError:
-            raise commands.errors.UserInputError("Please provide an integer number.") from None
+            raise commands.errors.UserInputError("Please provide an integer number.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
-        if not server:
-            raise commands.errors.CommandError("Set reward roles first.")
         server.winners_pool = winners_pool
         await server.save()
         await ctx.reply("Winners pool set.")
@@ -80,14 +109,14 @@ class Settings(commands.Cog):
     @set_winners_count.error
     async def set_winners_count_error(self, ctx, error):
         """
-        set-winners-count error handling
+        set-winners-count error handling.
+        Args: context, error
+        Return value: None
         """
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply("Count required.")
-            return
         else:
             await ctx.reply(error)
-            return
 
     @commands.command(
         name="set-role-weights",
@@ -98,8 +127,15 @@ class Settings(commands.Cog):
         """
         Set the amount of votes a user with a given role has.
         The default amount would be 0, so take heed.
+        Args: list of mentions and integer weights
+        (mentions on even indices, weights on odd indices)
+        Return value: None
         """
         args = args.split()
+        if len(args) % 2 != 0:
+            raise commands.errors.MissingRequiredArgument(
+                "Missing one or more weights."
+            )
         mentions = [e for i, e in enumerate(args) if i % 2 == 0]
         counts = [e for i, e in enumerate(args) if i % 2 != 0]
         try:
@@ -136,21 +172,21 @@ class Settings(commands.Cog):
     @set_role_weights.error
     async def set_role_weights_error(self, ctx, error):
         """
-        set-role-weights error handling
+        set-role-weights error handling.
+        Args: context, error
+        Return value: None
         """
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply(
                 f"A list of mentions and numbers is required.\
-                \nCommand syntax is: `@{internals.bot.user.name} \
+                \nCommand syntax is: `\
                 set-role-weights @mention weight @mention weight ...`"
             )
-            return
         else:
             await ctx.reply(
-                f"{error}\nCommand syntax is: `@{internals.bot.user.name} \
+                f"{error}\nCommand syntax is: `\
                 set-role-weights @mention weight @mention weight ...`"
             )
-            return
 
     @commands.command(
         name="view-server-settings", help="View the current settings for this server."
@@ -159,10 +195,10 @@ class Settings(commands.Cog):
     async def view_server_settings(self, ctx):
         """
         Reply with an embed storing server-wide settings.
+        Args: none except context
+        Return value: None
         """
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
-        if not server:
-            raise commands.errors.CommandError("Server configuration is not set yet. Please run `set-reward-roles`.")
         embed = discord.Embed(
             title="Server settings",
             desc=f"Elections settings for {ctx.guild.name}",
@@ -186,6 +222,8 @@ class Settings(commands.Cog):
         @view_server_settings.error
         async def view_server_settings_error(self, ctx, error):
             """
-            view-server-settings error handling
+            view-server-settings error handling.
+            Args: context, error
+            Return value: None
             """
             await ctx.reply(f"{error}")

@@ -8,12 +8,12 @@ from discord.ext import commands
 
 import src.db.db as db
 import src.internals as internals
-
+from src.db.db import ServersSettings
 
 @internals.bot.event
 async def on_ready():
     """
-    Initialize presence and log server connections
+    Initialize presence and log server connections.
     Args: None
     Return value: None
     """
@@ -29,11 +29,32 @@ async def on_ready():
             (id: {guild.id}) at {guild_timestamp}"
         )
 
+@internals.bot.event
+async def on_guild_join(guild):
+    """
+    Activated on server join. Creates server settings storage and sets the prefix to default.
+    Args: server object
+    Return value: None
+    """
+    server = await ServersSettings.create(server_id=guild.id)
+    server.prefixes = internals.DEFAULT_PREFIX
+    await server.save()
+    await guild.me.edit(username=f"[{internals.DEFAULT_PREFIX}]{bot.user.name}")
+
+@internals.bot.event
+async def on_guild_remove(guild):
+    """
+    Activated on server leave. Cleans up server settings.
+    Args: server object
+    Return value: None
+    """
+    server = await ServersSettings.filter(server_id=guild.id).first()
+    await server.delete()
 
 @internals.bot.event
 async def on_command_error(ctx, error):
     """
-    Commands' errors handling
+    Commands errors handling.
     Args: error as type Exception
     Return value: None
     """
