@@ -18,6 +18,8 @@ class ServersSettings(Model):
     winners_pool = fields.IntField(default=1)
     prefixes = fields.TextField(default="!")
     election_managers = fields.TextField(default="")
+    winner_selection_strategy = fields.TextField(default="max_votes")
+    votes_cutoff = fields.IntField(default="0")
 
     def __str__(self):
         """
