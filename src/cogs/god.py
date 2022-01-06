@@ -26,7 +26,6 @@ class God(commands.Cog):
         await god.send("Exiting...")
         await self.bot.close()
         print(f"Successfully caught fire via override from {god}.")
-        exit()
 
     @halt_and_catch_fire.error
     async def halt_and_catch_fire_error(self, ctx, error):

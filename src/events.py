@@ -80,5 +80,4 @@ async def on_command_error(ctx, error):
         return
     else:
         await ctx.reply(f"{error}")
-        print(error)
         return
