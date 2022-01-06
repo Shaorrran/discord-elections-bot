@@ -8,10 +8,15 @@ import src.internals as internals
 
 class Technical(commands.Cog):
     """
-    Techical commands
+    Technical commands
     """
 
     def __init__(self, bot):
+        """
+        Initialize the cog.
+        Args: bot object
+        Return value: None
+        """
         self.bot = bot
 
     @commands.command(name="ping", help="Get bot latency")

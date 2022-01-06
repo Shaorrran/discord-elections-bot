@@ -13,9 +13,10 @@ class ServersSettings(Model):
     """
 
     server_id = fields.IntField(pk=True, unique=True)
-    reward_roles = fields.TextField()  # ids separated by a comma
+    reward_roles = fields.TextField(default="")  # ids separated by a comma
     role_weights = fields.JSONField(null=True) # dict: {role_id: integer_weight}
     winners_pool = fields.IntField(default=1)
+    prefixes = fields.TextField(default="!")
 
     def __str__(self):
         """
@@ -38,6 +39,12 @@ class Elections(Model):
     timestamp = fields.DatetimeField()
     candidates_votes = fields.JSONField()  # dict: {"name": [emoji_id, number_of_votes]}
     progress_message = fields.IntField(default=-1)
+
+    def __str__(self):
+        """
+        Magic.
+        """
+        return str(self.id)
 
     class Meta:
         table = "elections"

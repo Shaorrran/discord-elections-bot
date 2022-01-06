@@ -10,7 +10,7 @@ import src.internals as internals
 
 async def get_id_by_mention(mention: str) -> int:
     """
-    Get id from mention
+    Get id from mention.
     Args: mention of type str
     Return value: id of type int
     """
@@ -29,7 +29,7 @@ async def get_id_by_mention(mention: str) -> int:
 
 async def get_mention_ids(mentions: typing.List[str]) -> typing.List[int]:
     """
-    Get a list of ids from a list of mentions
+    Get a list of ids from a list of mentions.
     Args: mentions of type List[str]
     Return value: ids of type List[str]
     """
@@ -42,7 +42,7 @@ async def get_mention_ids(mentions: typing.List[str]) -> typing.List[int]:
 
 async def get_user_mention_by_id(identifier: str) -> str:
     """
-    Wrapper for user.mention checking for mention type
+    Wrapper for user.mention checking for mention type.
     Args: id of type str
     Return value: mention of type str
     """
@@ -59,11 +59,11 @@ async def get_user_mention_by_id(identifier: str) -> str:
 
 async def get_mention_type(mention: str) -> str:
     """
-    Get mention type by mention
+    Get mention type by mention.
     Mentions in Discord have a <@user_id> format
     or <@!user_id> if the user has a guild-specific nickname,
     or <@&role_id> for role mentions,
-    or <@#channel_id> for channel mentions
+    or <@#channel_id> for channel mentions.
     Args: mention of type str
     Return value: one of the strings
     "user", "channel", "role", "undef"
@@ -85,7 +85,7 @@ async def get_mention_type(mention: str) -> str:
 
 async def get_emoji_id_from_embed_field(field: str) -> int:
     """
-    Get emoji id from an embed field
+    Get emoji id from an embed field.
     The embed fields look like <:emoji_name:emoji_id>:candidate_name
     Args: embed field value of type str
     Return value: emoji id of type int

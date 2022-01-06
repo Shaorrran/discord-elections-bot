@@ -78,14 +78,14 @@ class Voting(commands.Cog):
     @start_election.error
     async def start_election_error(self, ctx, error):
         """
-        start-election error handling
+        start-election error handling.
+        Args: context, error
+        Return value: None
         """
         if isinstance(error, commands.errors.MissingRequiredArgument):
             await ctx.reply("At least one candidate is required to start an election.")
-            return
         else:
             await ctx.reply(error)
-            return
 
     @commands.command(
         name="view-current-elections", help="View which elections are ongoing in this server."
@@ -94,6 +94,8 @@ class Voting(commands.Cog):
     async def view_current_elections(self, ctx):
         """
         View which elections are ongoing in this server as a Rich embed.
+        Args: none except context
+        Return value: None
         """
         elections = list(await Elections.filter(server_id=ctx.guild.id).all())
         embed = discord.Embed(
@@ -119,6 +121,8 @@ class Voting(commands.Cog):
     async def view_election_poll(self, ctx, *, election_id):
         """
         View the current poll for an election. Requires the election's ID as a number.
+        Args: election_id as type integer
+        Return value: None
         """
         try:
             election = await Elections.filter(id=election_id).first()
@@ -144,17 +148,17 @@ class Voting(commands.Cog):
     @view_election_poll.error
     async def view_election_poll_error(self, ctx, error):
         """
-        view-election-poll error handling
+        view-election-poll error handling.
+        Args: context, error
+        Return value: None
         """
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply(
                 "Please specify an election ID.\
                  Use `view-current-elections` to see which elections are in progress."
             )
-            return
         else:
             await ctx.reply(error)
-            return
 
     @commands.command(
         name="finish-election", help="Finish an election and give out the roles to the winners."
@@ -164,6 +168,7 @@ class Voting(commands.Cog):
         """
         Finish an election and give out reward roles.
         Args: election ID as type int.
+        Return value: None.
         """
         server = await ServersSettings.filter(
             server_id=ctx.guild.id
@@ -195,22 +200,24 @@ class Voting(commands.Cog):
     @finish_election.error
     async def finish_election_error(self, ctx, error):
         """
-        finish-election error handling
+        finish-election error handling.
+        Args: context, error
+        Return value: None
         """
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply(
                 "Please specify an election ID.\
                  Use `view-current-elections` to see which elections are in progress."
             )
-            return
         else:
             await ctx.reply(error)
-            return
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         """
         Listener that captures reactions and counts them as votes.
+        Args: none except payload (a Discord structure)
+        Return value: None
         """
         user = internals.bot.get_user(int(payload.user_id))
         if user.bot:
@@ -242,6 +249,8 @@ class Voting(commands.Cog):
     async def on_raw_reaction_remove(self, payload):
         """
         An inverse to on_raw_reaction_add that retractes votes if the reaction is removed.
+        Args: none except payload (a Discord structure)
+        Return value: None
         """
         user = internals.bot.get_user(int(payload.user_id))
         if user.bot:
