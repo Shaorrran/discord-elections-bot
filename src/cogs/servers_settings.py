@@ -32,6 +32,8 @@ class Settings(commands.Cog):
         Return value: None
         """
         prefixes = prefixes.split()
+        if "<" in prefixes:
+            raise commands.errors.UserInputError("Please do not use \"<\" as a prefix. As discord stores some internal data in `<whatever>` format, this may cause a machine uprising.")
         if not prefixes:
             raise commands.errors.MissingRequiredArgument("At least one prefix required.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
