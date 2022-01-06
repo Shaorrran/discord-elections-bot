@@ -20,7 +20,6 @@ async def on_ready():
     await internals.bot.change_presence(
         activity=discord.Activity(type=discord.ActivityType.playing, name="election fraud")  # ha!
     )
-    await db.init(in_memory=bool(internals.IN_MEMORY_DB))
     start_timestamp = datetime.datetime.now()
     print(f"Bot ready at: {start_timestamp}")
     for guild in internals.bot.guilds:
@@ -44,10 +43,13 @@ async def on_command_error(ctx, error):
         the required permissions for this command."
         )
         return
-    if isinstance(error, commands.errors.CommandNotFound):
+    elif isinstance(error, commands.errors.CommandNotFound):
         await ctx.reply("Command not found.")
         return
-    if isinstance(error, commands.errors.MissingRequiredArgument):
+    elif isinstance(error, commands.errors.MissingRequiredArgument):
+        # dealt with in per-command error handlers
+        return
+    elif isinstance((error, commands.errors.CommandError):
         # dealt with in per-command error handlers
         return
     else:

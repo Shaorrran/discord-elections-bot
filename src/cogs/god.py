@@ -20,3 +20,7 @@ class God(commands.Cog):
         god = (await internals.bot.application_info()).owner
         await internals.bot.close()
         print(f"Successfully caught fire via override from {god}.")
+
+    @halt_and_catch_fire.error
+    async def halt_and_catch_fire_error(self, ctx, error):
+        await ctx.reply(f"Failed to self-destruct. Reason: {error}")

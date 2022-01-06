@@ -110,6 +110,10 @@ class Voting(commands.Cog):
             )
         await ctx.reply(embed=embed)
 
+    @view_current_elections.error
+    async def view_current_elections(self, ctx, error):
+        await ctx.reply(f"{error}")
+
     @commands.command(name="view-election-poll", help="View the current polls for an election.")
     @commands.has_guild_permissions(manage_guild=True)
     async def view_election_poll(self, ctx, *, election_id):

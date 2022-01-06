@@ -23,7 +23,6 @@ def get_prefix(bot: commands.bot, message: str) -> tp.Any:
     """
     return commands.when_mentioned(bot, message)
 
-
 bot_intents = discord.Intents.default()
 bot_intents.members = True
 bot_intents.reactions = True

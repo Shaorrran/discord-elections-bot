@@ -14,7 +14,7 @@ class ServersSettings(Model):
 
     server_id = fields.IntField(pk=True, unique=True)
     reward_roles = fields.TextField()  # ids separated by a comma
-    role_weights = fields.JSONField(null=True)
+    role_weights = fields.JSONField(null=True) # dict: {role_id: integer_weight}
     winners_pool = fields.IntField(default=1)
 
     def __str__(self):
@@ -51,7 +51,7 @@ async def init(in_memory=False):
     if in_memory:
         database_path = "sqlite://:memory:"
     else:
-        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../..test.sqlite3"
+        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../..db.sqlite3"
     await Tortoise.init(
         db_url=database_path,
         modules={"models": [f"{__name__}"]},
