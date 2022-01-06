@@ -2,7 +2,7 @@
 Cog defining commands for managing elections.
 """
 import datetime
-import operator
+import itertools
 
 import discord
 from discord.ext import commands
@@ -116,10 +116,6 @@ class Voting(commands.Cog):
             )
         await ctx.reply(embed=embed)
 
-    @view_current_elections.error
-    async def view_current_elections(self, ctx, error):
-        await ctx.reply(f"{error}")
-
     @commands.command(name="view-election-poll", help="View the current polls for an election.")
     @commands.guild_only()
     async def view_election_poll(self, ctx, *, election_id):
@@ -181,8 +177,10 @@ class Voting(commands.Cog):
             raise commands.errors.CheckFailure(message="You are not an election manager.")
         server = await ServersSettings.filter(
             server_id=ctx.guild.id
-        ).first()  # assuming it exists, one can't start an election without that
-        winners_cutoff = server.winners_pool
+        ).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
+        winners_cutoff = server.winners_pool if server.winner_selection_strategy == "max_votes" else None
         try:
             election = await Elections.filter(id=election_id).first()
         except Exception:
@@ -190,19 +188,28 @@ class Voting(commands.Cog):
         if not election:
             raise commands.errors.CommandError("No such election exists.")
         candidates_votes = election.candidates_votes
-        voting = sorted(
-            dict(zip(candidates_votes.keys(), [i[1] for i in candidates_votes.values()])),
-            key=operator.itemgetter(1),
-            reverse=True,
-        )[:winners_cutoff]
+        votes_dict = dict(zip(candidates_votes.keys(), [i[1] for i in candidates_votes.values()]))
+        votes_sorted = dict(sorted(votes_dict.items(), key=lambda item: item[1], reverse=True))
+        print(votes_sorted)
+        print(winners_cutoff)
+        if winners_cutoff:
+            voting = dict(itertools.islice(votes_sorted.items(), winners_cutoff))
+        else:
+            print(f"cut_off by votes")
+            voting = {candidate: votes for candidate, votes in votes_sorted.items() if votes >= server.votes_cutoff}
         reward_roles = [
             discord.utils.get(ctx.guild.roles, id=int(role_id))
             for role_id in server.reward_roles.split(",")
         ]
-        for i in voting:
+        for i in voting.keys():
             winner = ctx.guild.get_member(int(i))
             await winner.add_roles(*reward_roles, reason=f"Won election #{election_id}")
         mentions = ", ".join([await helpers.get_user_mention_by_id(i) for i in voting])
+        election_message = await ctx.fetch_message(int(election.progress_message))
+        if not election_message:
+            raise commands.errors.UserInputError("Election voting board not found. Maybe the election is ongoing in some other channel?")
+        await election_message.unpin(reason="Removing an election voting board")
+        await election_message.delete()
         await election.delete()
         await ctx.reply(f"Election {election_id} finished. Winners: {mentions}")
 

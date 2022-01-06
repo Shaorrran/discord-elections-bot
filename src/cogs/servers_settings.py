@@ -32,7 +32,11 @@ class Settings(commands.Cog):
         Return value: None
         """
         prefixes = prefixes.split()
+        if not prefixes:
+            raise commands.errors.MissingRequiredArgument("At least one prefix required.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is most likely my own fault.")
         prefix_str = ",".join(prefixes)
         nickname = f"[{prefix_str}]{self.bot.user.name}"
         if len(nickname) > 32:
@@ -64,6 +68,8 @@ class Settings(commands.Cog):
         Return value: None
         """
         roles = roles.split()
+        if not roles:
+            raise commands.errors.MissingRequiredArgument("At least one role required.")
         types = [await helpers.get_mention_type(i) for i in roles]
         if "user" in types or "channel" in types or "undef" in types:
             raise commands.errors.UserInputError(
@@ -71,10 +77,19 @@ class Settings(commands.Cog):
             )
         ids = list(set([str(i) for i in await helpers.get_mention_ids(roles)]))
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
         guild_managers = list(set([str(i.id) for i in ctx.guild.roles if i.permissions.manage_guild]))
         server.election_managers = ",".join(guild_managers) + "," + ",".join(ids)
         await server.save()
         await ctx.reply("Election manager roles set.")
+
+    @set_election_managers.error
+    async def set_election_managers_error(self, ctx, error):
+        if isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.reply("At least one role required.")
+        else:
+            await ctx.reply(f"{error}")
 
     @commands.command(
         name="set-reward-roles", help="Set the roles that will be given out as rewards to winners."
@@ -90,6 +105,8 @@ class Settings(commands.Cog):
         if not has_permission:
             raise commands.errors.CheckFailure(message="You are not an election manager.")
         roles = roles.split()
+        if not roles:
+            raise commands.errors.MissingRequiredArgument("At least one role required.")
         types = [await helpers.get_mention_type(i) for i in roles]
         if "user" in types or "channel" in types or "undef" in types:
             raise commands.errors.UserInputError(
@@ -97,6 +114,8 @@ class Settings(commands.Cog):
             )
         ids = [str(i) for i in await helpers.get_mention_ids(roles)]
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
         server.reward_roles = ",".join(ids)
         await server.save()
         await ctx.reply("Reward roles set.")
@@ -112,7 +131,6 @@ class Settings(commands.Cog):
             await ctx.reply("Please specify at least one role to set as a reward.")
         else:
             await ctx.reply(error)
-            print(error)
 
     @commands.command(
         name="set-winners-count", help="Set the number of winner that are possible in an election."
@@ -128,6 +146,8 @@ class Settings(commands.Cog):
         if not has_permission:
             raise commands.errors.CheckFailure(message="You are not an election manager.")
         count = count.split()
+        if not count:
+            raise commands.errors.MissingRequiredArgument("Please specify the winners count number.")
         if len(count) > 1:
             raise commands.errors.UserInputError("Only one number required.")
         try:
@@ -135,6 +155,10 @@ class Settings(commands.Cog):
         except ValueError:
             raise commands.errors.UserInputError("Please provide an integer number.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
+            if winners_pool <= 0:
+                raise commands.errors.UserInputError("Please provide a number that is more than zero.")
         server.winners_pool = winners_pool
         await server.save()
         await ctx.reply("Winners pool set.")
@@ -168,6 +192,8 @@ class Settings(commands.Cog):
         if not has_permission:
             raise commands.errors.CheckFailure(message="You are not an election manager.")
         args = args.split()
+        if not args:
+            raise commands.errors.MissingRequiredArgument("At least one role-weight pair is required.")
         if len(args) % 2 != 0:
             raise commands.errors.MissingRequiredArgument(
                 "Missing one or more weights."
@@ -179,7 +205,7 @@ class Settings(commands.Cog):
         except ValueError:
             raise commands.errors.UserInputError(
                 "Please provide integer numbers for role weights."
-            ) from None
+            )
         if "@everyone" in mentions:
             while "@everyone" in mentions:
                 pos = mentions.index("@everyone")
@@ -198,6 +224,8 @@ class Settings(commands.Cog):
         ids = await helpers.get_mention_ids(mentions)
         role_weights = dict(zip(ids, counts))
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
         server.role_weights = role_weights
         await server.save()
         await ctx.reply("Role weights updated!")
@@ -221,7 +249,6 @@ class Settings(commands.Cog):
     @commands.command(
         name="view-server-settings", help="View the current settings for this server."
     )
-    @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     async def view_server_settings(self, ctx):
         """
@@ -230,22 +257,32 @@ class Settings(commands.Cog):
         Return value: None
         """
         has_permission = await helpers.is_election_manager(ctx)
-        managers = [int(i) for i in server.election_managers.split()]
         if not has_permission:
             raise commands.errors.CheckFailure(message="You are not an election manager.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
         embed = discord.Embed(
             title="Server settings",
             desc=f"Elections settings for {ctx.guild.name}",
             color=discord.Color.dark_blue(),
         )
+        if not server.reward_roles:
+            raise commands.errors.CheckFailure(message="Run `set-reward-roles` first.")
         roles = [
             discord.utils.get(ctx.guild.roles, id=int(role_id)).name
             for role_id in server.reward_roles.split(",")
         ]
         reward_roles = ",".join(roles)
         embed.add_field(name="Reward roles", value=reward_roles)
-        embed.add_field(name="Winners' pool", value=f"{server.winners_pool} winners possible")
+        selection_strategy_str = "Maximum votes" if server.winner_selection_strategy == "max_votes" else "Votes cutoff"
+        embed.add_field(name="Winner selection strategy", value=selection_strategy_str)
+        winner_pool_str = f"{server.winners_pool}" if server.winner_selection_strategy == "max_votes" else "N/A"
+        embed.add_field(name="Winners pool", value=winner_pool_str)
+        votes_cutoff_str = server.votes_cutoff if server.winner_selection_strategy == "cutoff" else "N/A"
+        embed.add_field(name="Votes cutoff", value=votes_cutoff_str)
+        if not server.role_weights:
+            raise commands.errors.CheckFailure(message="Run `set-role-weights` first.")
         for i in server.role_weights:
             role = discord.utils.get(ctx.guild.roles, id=int(i))
             embed.add_field(
@@ -261,4 +298,73 @@ class Settings(commands.Cog):
             Args: context, error
             Return value: None
             """
+            await ctx.reply(f"{error}")
+
+    @commands.command(name="set-winner-selection-strategy", help="Set whether to choose winners by maximum votes count or simply by a cutoff number.")
+    @commands.guild_only()
+    async def set_winner_selection_strategy(self, ctx, strategy):
+        """
+        Set the election strategy to either select winners by sorting vote counts and selecting `winners_count` members as winners,
+        or by setting all members with the amount of votes more or equal to `votes_cutoff` as winners.
+        Args: mode of type str in ("max_votes", "cutoff")
+        Return value: None
+        """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
+        if strategy not in ("max_votes", "cutoff"):
+            raise commands.errors.UserInputError("Incorrent election strategy, only `max_votes` or `cutoff` allowed.")
+        server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if not server:
+            raise ValueError("Server settings not found. This is likely my own fault.")
+        server.winner_selection_strategy = strategy
+        await server.save()
+        await ctx.reply("Winner selection strategy set.")
+
+    @set_winner_selection_strategy.error
+    async def set_winner_selection_strategy_error(self, ctx, error):
+        """
+        set-winner-selection-strategy error handling.
+        Args: context, error
+        Return value: None
+        """
+        await ctx.reply(f"{error}")
+
+    @commands.command(name="set-votes-cutoff", help="Set the amount of votes that determine how much votes a member must amass to win an election if the `cutoff` strategy is used.")
+    @commands.guild_only()
+    async def set_votes_cutoff(self, ctx, *, cutoff):
+        """
+        Set the cutoff that determines the amount of votes a member must have to pass as a winner.
+        Args: cutoff as type int
+        Return value: None
+        """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
+        cutoff = cutoff.split()
+        if not cutoff:
+            raise commands.errors.MissingRequiredArgument("Cutoff required.")
+        server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        if len(cutoff) > 1:
+            raise commands.errors.UserInputError("Only one number required.")
+        try:
+            cutoff = int(cutoff[0])
+        except ValueError:
+            raise commands.errors.UserInputError("Please provide an integer number.")
+        if cutoff <= 0:
+            raise commands.errors.UserInputError("The cutoff must be more than zero.")
+        server.votes_cutoff = cutoff
+        await server.save()
+        await ctx.reply("Votes cutoff set.")
+
+    @set_votes_cutoff.error
+    async def set_votes_cutoff_error(self, ctx, error):
+        """
+        set-votes-cutoff error handling.
+        Args: context, error
+        Return value: None
+        """
+        if isinstance(error, commands.errors.MissingRequiredArgument):
+            await ctx.reply("Cutoff required")
+        else:
             await ctx.reply(f"{error}")
