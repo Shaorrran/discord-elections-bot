@@ -2,10 +2,22 @@
 Tortoise ORM models' definitions and db access internals.
 """
 import os
+import warnings
+
+from dotenv import load_dotenv
 
 from tortoise import Tortoise, fields, run_async
 from tortoise.models import Model
 
+load_dotenv()
+DEPRECATED = True # CHANGE THIS
+LOCAL_DB = bool(os.getenv("LOCAL_DB")) if os.getenv("LOCAL_DB") else True
+DRIVER = "sqlite" if deprecated else "postgres"
+POSTGRES_USERNAME = os.getenv("POSTGRES_USERNAME") if not LOCAL_DB else "postgres"
+POSTGRES_HOST = os.getenv("POSTGRES_HOST") if not LOCAL_DB else "localhost"
+POSTGRES_PORT = os.getenv("POSTGRES_PORT") if not LOCAL_DB else 5432
+POSTGRES_DBNAME = os.getenv("POSTGRES_DBNAME") if not LOCAL_DB else "postgres"
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD") if not LOCAL_DB else ""
 
 class ServersSettings(Model):
     """
@@ -58,15 +70,36 @@ async def init(in_memory=False):
     """
     Start up the database connections.
     """
-    if in_memory:
-        database_path = "sqlite://:memory:"
+    config_dict = []
+    if deprecated:
+        if in_memory:
+            warnings.warn("in_memory is deprecated. This will have no effect on the postgres driver and will be removed in the next release.", DeprecationWarning)
+            database_path = f"{DRIVER}://:memory:"
+        else:
+            database_path = f"{DRIVER}://{os.path.dirname(os.path.realpath(__file__))}/../../db.sqlite3"
+        await Tortoise.init(
+            db_url=database_path,
+            modules={"models": [f"{__name__}"]},
+            )
+        await Tortoise.generate_schemas(safe=True)
     else:
-        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../../db.sqlite3"
-    await Tortoise.init(
-        db_url=database_path,
-        modules={"models": [f"{__name__}"]},
-    )
-    await Tortoise.generate_schemas(safe=True)
+        if in_memory:
+            warnings.warn("in_memory is deprecated. This will have no effect on the postgres driver and will be removed in the next release.", DeprecationWarning)
+            warnings.warn("Reverting to SQLite driver.")
+            DRIVER = "sqlite"
+            database_path = f"{DRIVER}://:memory:" # revert to previous behaviour
+            await Tortoise.init(
+                db_url=database_path,
+                modules={"models": [f"{__name__}"]},
+                )
+            await Tortoise.generate_schemas(safe=True)
+        else:
+            database_path = f"{DRIVER}://{POSTGRES_USERNAME}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DBNAME}"
+            await Tortoise.init(
+                db_url=database_path,
+                modules={"models": [f"{__name__}"]},
+                )
+            await Tortoise.generate_schemas(safe=True)
 
 
 async def db_cleanup():

@@ -1,6 +1,7 @@
 """
 Cog defining commands for managing elections.
 """
+import operator
 import datetime
 import itertools
 
