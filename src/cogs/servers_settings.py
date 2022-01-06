@@ -54,10 +54,31 @@ class Settings(commands.Cog):
         else:
             await ctx.reply(f"{error}")
 
+    @commands.command(name="set-election-managers", help="Select roles that have the ability to change election parameters and manage elections.")
+    @commands.has_guild_permissions(manage_guild=True)
+    @commands.guild_only()
+    async def set_election_managers(self, ctx, *, roles):
+        """
+        Set roles that can edit server election settings and manage elections.
+        Args: list of role mentions of type str
+        Return value: None
+        """
+        roles = roles.split()
+        types = [await helpers.get_mention_type(i) for i in roles]
+        if "user" in types or "channel" in types or "undef" in types:
+            raise commands.errors.UserInputError(
+                "Please check if you had mentioned a user/channel. Only roles are supported."
+            )
+        ids = list(set([str(i) for i in await helpers.get_mention_ids(roles)]))
+        server = await ServersSettings.filter(server_id=ctx.guild.id).first()
+        guild_managers = list(set([str(i.id) for i in ctx.guild.roles if i.permissions.manage_guild]))
+        server.election_managers = ",".join(guild_managers) + "," + ",".join(ids)
+        await server.save()
+        await ctx.reply("Election manager roles set.")
+
     @commands.command(
         name="set-reward-roles", help="Set the roles that will be given out as rewards to winners."
     )
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def set_reward_roles(self, ctx, *, roles):
         """
@@ -65,6 +86,9 @@ class Settings(commands.Cog):
         Args: list of role mentions of type str
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         roles = roles.split()
         types = [await helpers.get_mention_type(i) for i in roles]
         if "user" in types or "channel" in types or "undef" in types:
@@ -88,11 +112,11 @@ class Settings(commands.Cog):
             await ctx.reply("Please specify at least one role to set as a reward.")
         else:
             await ctx.reply(error)
+            print(error)
 
     @commands.command(
         name="set-winners-count", help="Set the number of winner that are possible in an election."
     )
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def set_winners_count(self, ctx, *, count):
         """
@@ -100,6 +124,9 @@ class Settings(commands.Cog):
         Args: count of type int
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         count = count.split()
         if len(count) > 1:
             raise commands.errors.UserInputError("Only one number required.")
@@ -128,7 +155,6 @@ class Settings(commands.Cog):
         name="set-role-weights",
         help="Set the number of votes a member with a given role has available.",
     )
-    @commands.has_guild_permissions(manage_guild=True)
     @commands.guild_only()
     async def set_role_weights(self, ctx, *, args):
         """
@@ -138,6 +164,9 @@ class Settings(commands.Cog):
         (mentions on even indices, weights on odd indices)
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         args = args.split()
         if len(args) % 2 != 0:
             raise commands.errors.MissingRequiredArgument(
@@ -192,7 +221,7 @@ class Settings(commands.Cog):
     @commands.command(
         name="view-server-settings", help="View the current settings for this server."
     )
-    @commands.has_guild_permissions(manage_guild=True)
+    @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
     async def view_server_settings(self, ctx):
         """
@@ -200,6 +229,10 @@ class Settings(commands.Cog):
         Args: none except context
         Return value: None
         """
+        has_permission = await helpers.is_election_manager(ctx)
+        managers = [int(i) for i in server.election_managers.split()]
+        if not has_permission:
+            raise commands.errors.CheckFailure(message="You are not an election manager.")
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
         embed = discord.Embed(
             title="Server settings",

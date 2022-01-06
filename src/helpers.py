@@ -7,6 +7,8 @@ from discord.ext import commands
 
 import src.internals as internals
 
+from src.db.db import ServersSettings
+
 
 async def get_id_by_mention(mention: str) -> int:
     """
@@ -93,3 +95,11 @@ async def get_emoji_id_from_embed_field(field: str) -> int:
     emoji_data = field[: field.find(">")][2:]
     emoji_id = int(emoji_data[emoji_data.find(":") + 1 :])
     return emoji_id
+
+async def is_election_manager(ctx) -> bool:
+    server = await ServersSettings(server_id=ctx.guild.id).first()
+    managers = set([int(i) for i in server.election_managers.split(",")])
+    author_roles = set([i.id for i in ctx.author.roles])
+    if not author_roles.intersection(managers):
+        return False
+    return True

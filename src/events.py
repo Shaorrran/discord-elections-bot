@@ -39,6 +39,8 @@ async def on_guild_join(guild):
     guild_timestamp = datetime.datetime.now()
     server = await ServersSettings.create(server_id=guild.id)
     server.prefixes = internals.DEFAULT_PREFIX
+    managers = [str(i.id) for i in guild.roles if i.permissions.manage_guild]
+    server.election_managers = ",".join(managers)
     await server.save()
     await guild.get_member(internals.bot.user.id).edit(nick=f"[{internals.DEFAULT_PREFIX}]{internals.bot.user.name}")
     print(f"Joined server {guild.name} (id: {guild.id}) at ({guild_timestamp})")
@@ -78,4 +80,5 @@ async def on_command_error(ctx, error):
         return
     else:
         await ctx.reply(f"{error}")
+        print(error)
         return

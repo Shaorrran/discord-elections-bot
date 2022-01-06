@@ -17,6 +17,7 @@ class ServersSettings(Model):
     role_weights = fields.JSONField(null=True) # dict: {role_id: integer_weight}
     winners_pool = fields.IntField(default=1)
     prefixes = fields.TextField(default="!")
+    election_managers = fields.TextField(default="")
 
     def __str__(self):
         """
