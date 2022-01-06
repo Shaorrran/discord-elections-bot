@@ -22,3 +22,7 @@ class Technical(commands.Cog):
         Return value: None
         """
         await ctx.send(f"Latency: {round(internals.bot.latency * 1000)} ms")
+
+    @ping.error
+    async def ping_error(self, ctx, error):
+        await ctx.reply(f"{error}")

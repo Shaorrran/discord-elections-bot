@@ -182,3 +182,10 @@ class Settings(commands.Cog):
                 value=f"{server.role_weights[i]}",
             )
         await ctx.reply(embed=embed)
+
+        @view_server_settings.error
+        async def view_server_settings_error(self, ctx, error):
+            """
+            view-server-settings error handling
+            """
+            await ctx.reply(f"{error}")
