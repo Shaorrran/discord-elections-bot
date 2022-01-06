@@ -17,6 +17,7 @@ async def on_ready():
     Args: None
     Return value: None
     """
+    print("Starting up...")
     await internals.bot.change_presence(
         activity=discord.Activity(type=discord.ActivityType.playing, name="election fraud")  # ha!
     )
@@ -25,8 +26,7 @@ async def on_ready():
     for guild in internals.bot.guilds:
         guild_timestamp = datetime.datetime.now()
         print(
-            f"{internals.bot.user} is connected to {guild.name} \
-            (id: {guild.id}) at {guild_timestamp}"
+            f"{internals.bot.user} is connected to {guild.name} (id: {guild.id}) at {guild_timestamp}"
         )
 
 @internals.bot.event
@@ -36,10 +36,12 @@ async def on_guild_join(guild):
     Args: server object
     Return value: None
     """
+    guild_timestamp = datetime.datetime.now()
     server = await ServersSettings.create(server_id=guild.id)
     server.prefixes = internals.DEFAULT_PREFIX
     await server.save()
-    await guild.me.edit(username=f"[{internals.DEFAULT_PREFIX}]{bot.user.name}")
+    await guild.get_member(internals.bot.user.id).edit(nick=f"[{internals.DEFAULT_PREFIX}]{internals.bot.user.name}")
+    print(f"Joined server {guild.name} (id: {guild.id}) at ({guild_timestamp})")
 
 @internals.bot.event
 async def on_guild_remove(guild):
@@ -48,8 +50,10 @@ async def on_guild_remove(guild):
     Args: server object
     Return value: None
     """
+    guild_timestamp = datetime.datetime.now()
     server = await ServersSettings.filter(server_id=guild.id).first()
     await server.delete()
+    print(f"Left server {guild.name} (id: {guild.id}) at ({guild_timestamp})")
 
 @internals.bot.event
 async def on_command_error(ctx, error):
@@ -60,8 +64,7 @@ async def on_command_error(ctx, error):
     """
     if isinstance(error, commands.errors.MissingPermissions):
         await ctx.reply(
-            "You lack \
-        the required permissions for this command."
+            "You lack the required permissions for this command."
         )
         return
     elif isinstance(error, commands.errors.CommandNotFound):

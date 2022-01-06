@@ -22,9 +22,11 @@ class God(commands.Cog):
         Return value: None
         """
         await db.db_cleanup()
-        god = (await internals.bot.application_info()).owner
-        await internals.bot.close()
+        god = (await self.bot.application_info()).owner
+        await god.send("Exiting...")
+        await self.bot.close()
         print(f"Successfully caught fire via override from {god}.")
+        exit()
 
     @halt_and_catch_fire.error
     async def halt_and_catch_fire_error(self, ctx, error):

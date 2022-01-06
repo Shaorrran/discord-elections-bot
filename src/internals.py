@@ -4,7 +4,6 @@ Internal definitions and global vars.
 import os
 import typing as tp
 
-import asyncio
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -29,13 +28,13 @@ async def init_db():
     """
     await db.init(in_memory=bool(IN_MEMORY_DB))
 
-asyncio.run(init_db())
-
 async def get_prefix(bot: commands.bot, message: tp.Any) -> tp.Any:
     """
     Get the bot prefix.
     """
-    prefixes = await servers_settings.ServersSettings().filter(server_id=message.guild.id).first().split(",")
+    server = await servers_settings.ServersSettings().filter(server_id=message.guild.id).first()
+    prefixes_str = server.prefixes
+    prefixes = prefixes_str.split(",")
 
     return commands.bot.when_mentioned_or(*prefixes)(bot, message)
 

@@ -24,17 +24,22 @@ class Settings(commands.Cog):
 
     @commands.command(name="set-prefixes", help="Set bot prefixes for this server")
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.guild_only()
     async def set_prefixes(self, ctx, *, prefixes):
         """
         Set bot prefixes.
         Args: prefixes (strings separated by spaces)
         Return value: None
         """
+        prefixes = prefixes.split()
         server = await ServersSettings.filter(server_id=ctx.guild.id).first()
-        prefix_string = ",".join(prefixes)
-        server.prefixes = prefix_string
+        prefix_str = ",".join(prefixes)
+        nickname = f"[{prefix_str}]{self.bot.user.name}"
+        if len(nickname) > 32:
+            raise commands.errors.UserInputError("Discord requires usernames to be 32 characters or less in length, and you supplied more, so the bot cannot rename itself.\nPlease select fewer and/or shorter prefixes.")
+        server.prefixes = prefix_str
         await server.save()
-        ctx.guild.me.edit(username=f"[{prefix_string}]{self.bot.user.name}")
+        await ctx.guild.get_member(self.bot.user.id).edit(nick=nickname)
         await ctx.reply("New prefixes set!")
 
     @set_prefixes.error
@@ -45,8 +50,7 @@ class Settings(commands.Cog):
         Return value: None
         """
         if isinstance(error, commands.errors.MissingRequiredArgument):
-            await ctx.reply("At least one prefix required.\n\
-                Command syntax: `set-prefixes prefix prefix prefix ...`")
+            await ctx.reply("At least one prefix required.\nCommand syntax: `set-prefixes prefix prefix prefix ...`")
         else:
             await ctx.reply(f"{error}")
 
@@ -54,6 +58,7 @@ class Settings(commands.Cog):
         name="set-reward-roles", help="Set the roles that will be given out as rewards to winners."
     )
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.guild_only()
     async def set_reward_roles(self, ctx, *, roles):
         """
         Set roles to be given as rewards for winning elections.
@@ -88,6 +93,7 @@ class Settings(commands.Cog):
         name="set-winners-count", help="Set the number of winner that are possible in an election."
     )
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.guild_only()
     async def set_winners_count(self, ctx, *, count):
         """
         Set the number of users that will be able to win the election.
@@ -123,6 +129,7 @@ class Settings(commands.Cog):
         help="Set the number of votes a member with a given role has available.",
     )
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.guild_only()
     async def set_role_weights(self, ctx, *, args):
         """
         Set the amount of votes a user with a given role has.
@@ -152,10 +159,7 @@ class Settings(commands.Cog):
                 ] = f"<@&{ctx.guild.id}>"  # @everyone is equal to mentioning by server id
         if "@here" in mentions:
             raise commands.errors.UserInputError(
-                "Please avoid \
-                using the \@here mention. \
-                It does not make sense anyway, \
-                because it targets individual users."
+                "Please avoid using the `@here` mention. It does not make sense anyway, because it targets individual users."
             )
         types = [await helpers.get_mention_type(i) for i in mentions]
         if "user" in types or "channel" in types or "undef" in types:
@@ -178,20 +182,18 @@ class Settings(commands.Cog):
         """
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.reply(
-                f"A list of mentions and numbers is required.\
-                \nCommand syntax is: `\
-                set-role-weights @mention weight @mention weight ...`"
+                f"A list of mentions and numbers is required.\nCommand syntax is: `set-role-weights @mention weight @mention weight ...`"
             )
         else:
             await ctx.reply(
-                f"{error}\nCommand syntax is: `\
-                set-role-weights @mention weight @mention weight ...`"
+                f"{error}\nCommand syntax is: `set-role-weights @mention weight @mention weight ...`"
             )
 
     @commands.command(
         name="view-server-settings", help="View the current settings for this server."
     )
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.guild_only()
     async def view_server_settings(self, ctx):
         """
         Reply with an embed storing server-wide settings.

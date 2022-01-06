@@ -58,7 +58,7 @@ async def init(in_memory=False):
     if in_memory:
         database_path = "sqlite://:memory:"
     else:
-        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../..db.sqlite3"
+        database_path = f"sqlite://{os.path.dirname(os.path.realpath(__file__))}/../../db.sqlite3"
     await Tortoise.init(
         db_url=database_path,
         modules={"models": [f"{__name__}"]},
