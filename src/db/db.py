@@ -10,10 +10,10 @@ from tortoise import Tortoise, fields, run_async
 from tortoise.models import Model
 
 load_dotenv()
-DEPRECATED = True # CHANGE THIS
+DEPRECATED = False
 DATABASE_URL = os.getenv("DATABASE_URL") if os.getenv("DATABASE_URL") else None
 LOCAL_DB = bool(os.getenv("LOCAL_DB")) if os.getenv("LOCAL_DB") else True
-DRIVER = "sqlite" if deprecated else "postgres"
+DRIVER = "sqlite" if DEPRECATED else "postgres"
 POSTGRES_USERNAME = os.getenv("POSTGRES_USERNAME") if not LOCAL_DB else "postgres"
 POSTGRES_HOST = os.getenv("POSTGRES_HOST") if not LOCAL_DB else "localhost"
 POSTGRES_PORT = os.getenv("POSTGRES_PORT") if not LOCAL_DB else 5432
