@@ -21,9 +21,7 @@ class God(commands.Cog):
         Args: None except context
         Return value: None
         """
-        await db.db_cleanup()
         god = (await self.bot.application_info()).owner
-        await god.send("Exiting...")
         await self.bot.close()
         print(f"Successfully caught fire via override from {god}.")
 

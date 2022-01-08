@@ -21,6 +21,9 @@ async def on_ready():
     await internals.bot.change_presence(
         activity=discord.Activity(type=discord.ActivityType.playing, name="election fraud")  # ha!
     )
+    print("Initializing database connection...")
+    await db.init()
+    print("Initialized!")
     start_timestamp = datetime.datetime.now()
     print(f"Bot ready at: {start_timestamp}")
     for guild in internals.bot.guilds:
@@ -28,6 +31,16 @@ async def on_ready():
         print(
             f"{internals.bot.user} is connected to {guild.name} (id: {guild.id}) at {guild_timestamp}"
         )
+
+@internals.bot.event
+async def on_disconnect():
+    """
+    Clean up on disconnect
+    Args: None
+    Return value: None
+    """
+    print("Disconnected from Discord, cleaning up DB connection...")
+    await db.db_cleanup()
 
 @internals.bot.event
 async def on_guild_join(guild):
