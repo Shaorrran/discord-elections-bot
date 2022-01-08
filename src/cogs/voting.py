@@ -1,6 +1,7 @@
 """
 Cog defining commands for managing elections.
 """
+import operator
 import datetime
 import itertools
 
@@ -245,6 +246,8 @@ class Voting(commands.Cog):
         election = await Elections.filter(progress_message=payload.message_id).first()
         server = await ServersSettings.filter(server_id=payload.guild_id).first()
         candidates_votes = election.candidates_votes
+        if payload.member.id in candidates_votes.keys():
+            return # cannot vote for oneself
         for i in candidates_votes:
             weights = [
                 (i, server.role_weights[str(i)])
@@ -268,6 +271,7 @@ class Voting(commands.Cog):
         Return value: None
         """
         user = internals.bot.get_user(int(payload.user_id))
+        guild = await self.bot.fetch_guild(payload.guild_id)
         if user.bot:
             return  # machines can't vote
         progress_messages = [
@@ -278,11 +282,14 @@ class Voting(commands.Cog):
         election = await Elections.filter(progress_message=payload.message_id).first()
         server = await ServersSettings.filter(server_id=payload.guild_id).first()
         candidates_votes = election.candidates_votes
+        member = discord.utils.get(guild.members, user_id=payload.user_id)
+        if member.id in candidates_votes.keys():
+            return # cannot remove vote for oneself since one cannot vote for oneself
         for i in candidates_votes:
             weights = [
                 (i, server.role_weights[str(i)])
                 for i in (
-                    set([i.id for i in payload.member.roles])
+                    set([i.id for i in member.roles])
                     & set([int(i) for i in server.role_weights.keys()])
                 )
             ]
