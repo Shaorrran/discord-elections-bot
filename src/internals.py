@@ -20,14 +20,6 @@ TOKEN = os.getenv("BOT_TOKEN")  # because, you know, it's supposed to be *secret
 IN_MEMORY_DB = os.getenv("IN_MEMORY_DB")  # whether we store the database in memory or in a file
 DEFAULT_PREFIX = "!"
 
-async def init_db():
-    """
-    Initialize database connection.
-    Args: none
-    Return value: None
-    """
-    await db.init()
-
 async def get_prefix(bot: commands.bot, message: tp.Any) -> tp.Any:
     """
     Get the bot prefix.
