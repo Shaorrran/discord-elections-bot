@@ -282,7 +282,7 @@ class Voting(commands.Cog):
         election = await Elections.filter(progress_message=payload.message_id).first()
         server = await ServersSettings.filter(server_id=payload.guild_id).first()
         candidates_votes = election.candidates_votes
-        member = discord.utils.get(guild.members, user_id=payload.user_id)
+        member = guild.fetch_member(payload.user_id)
         if member.id in candidates_votes.keys():
             return # cannot remove vote for oneself since one cannot vote for oneself
         for i in candidates_votes:
