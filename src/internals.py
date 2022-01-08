@@ -26,7 +26,7 @@ async def init_db():
     Args: none
     Return value: None
     """
-    await db.init(in_memory=bool(IN_MEMORY_DB))
+    await db.init()
 
 async def get_prefix(bot: commands.bot, message: tp.Any) -> tp.Any:
     """
